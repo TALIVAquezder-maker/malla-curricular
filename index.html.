@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es-BO">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAGRM - Malla Curricular Derecho</title>
+    <style>
+        :root {
+            /* Colores Institucionales UAGRM */
+            --uagrm-azul: #0A2240;      
+            --uagrm-rojo: #7A1C21;      
+            --uagrm-fondo: #f4f6f9;
+            
+            /* Colores Malla */
+            --aprobada: #d4edda;
+            --disponible: #ffffff;
+            --bloqueada: #e9ecef;
+            --borde-aprobada: #28a745;
+            --borde-disponible: var(--uagrm-azul);
+            --borde-bloqueada: #adb5bd;
+            --texto-oscuro: #333;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--uagrm-fondo);
+            color: var(--texto-oscuro);
+        }
+
+        /* --- PANTALLA DE LOGIN --- */
+        #login-section {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            background: linear-gradient(135deg, var(--uagrm-azul) 0%, #1a365d 100%); padding: 20px;
+        }
+
+        .login-card {
+            background: white; padding: 40px 30px; border-radius: 10px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3); width: 100%; max-width: 420px;
+            text-align: center; border-top: 6px solid var(--uagrm-rojo);
+        }
+
+        .login-header h2 { color: var(--uagrm-azul); font-size: 1.4rem; margin-bottom: 5px; font-weight: 700; }
+        .login-header h3 { color: #555; font-size: 0.9rem; margin-bottom: 5px; font-weight: normal; }
+        .login-header h4 { color: var(--uagrm-rojo); font-size: 1.1rem; margin-bottom: 25px; text-transform: uppercase; }
+
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--uagrm-azul); font-size: 0.9rem; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; transition: border-color 0.3s; }
+        .form-group input:focus { outline: none; border-color: var(--uagrm-rojo); box-shadow: 0 0 5px rgba(122, 28, 33, 0.2); }
+
+        .btn-login {
+            background-color: var(--uagrm-rojo); color: white; border: none; padding: 14px; width: 100%;
+            border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background-color 0.3s; margin-top: 10px;
+        }
+        .btn-login:hover { background-color: #5e1519; }
+
+        /* --- PANTALLA PRINCIPAL (MALLA) --- */
+        #app-section { display: none; }
+
+        .app-header {
+            background-color: var(--uagrm-azul); color: white; padding: 20px;
+            text-align: center; border-bottom: 5px solid var(--uagrm-rojo); margin-bottom: 25px;
+        }
+        .app-header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+        .app-header p { font-size: 1rem; opacity: 0.9; }
+
+        /* --- ESTADÍSTICAS PPA --- */
+        .stats-container {
+            display: flex; justify-content: center; gap: 20px; margin: -10px 15px 25px; flex-wrap: wrap; max-width: 1200px; margin-left: auto; margin-right: auto;
+        }
+        .stat-box {
+            background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center; border-bottom: 4px solid var(--uagrm-azul); min-width: 160px; flex: 1; max-width: 250px;
+        }
+        .stat-box h4 { color: var(--uagrm-rojo); margin-bottom: 5px; font-size: 1.2rem; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: var(--uagrm-azul); }
+        .stat-desc { font-size: 0.8rem; color: #666; margin-top: 5px; line-height: 1.2; }
+
+        .leyenda {
+            display: flex; justify-content: center; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; padding: 0 15px;
+        }
+        .item-leyenda { display: flex; align-items: center; gap: 8px; font-size: 0.95em; font-weight: 500;}
+        .caja-color { width: 18px; height: 18px; border-radius: 4px; border: 2px solid; }
+
+        .malla-container {
+            display: flex; flex-direction: column; gap: 25px; max-width: 1200px; margin: 0 auto; padding: 0 15px 40px;
+        }
+        .anio {
+            background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--uagrm-azul);
+        }
+        .anio h2 {
+            margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; color: var(--uagrm-azul); font-size: 1.4rem;
+        }
+        .materias-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;
+        }
+        
+        .materia {
+            padding: 15px; border-radius: 6px; border-left: 6px solid; position: relative; transition: all 0.2s;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .materia:not(.bloqueada) { cursor: pointer; }
+        .materia:not(.bloqueada):hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        
+        .materia.aprobada { background-color: var(--aprobada); border-left-color: var(--borde-aprobada); }
+        .materia.disponible { background-color: var(--disponible); border: 1px solid #ddd; border-left: 6px solid var(--borde-disponible); }
+        .materia.bloqueada { background-color: var(--bloqueada); border-left-color: var(--borde-bloqueada); opacity: 0.65; }
+        
+        .header-mat { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;}
+        .codigo { font-weight: bold; font-size: 0.9em; color: var(--uagrm-azul); }
+        .nota-badge { font-weight: bold; font-size: 0.85em; background: var(--borde-aprobada); color: white; padding: 3px 8px; border-radius: 12px; }
+        .nota-badge.reprobada { background: var(--uagrm-rojo); }
+        .nombre { font-size: 0.95em; font-weight: 600; line-height: 1.3; margin-bottom: 10px; flex-grow: 1; }
+        .detalles-mat { font-size: 0.8em; color: #666; display: flex; gap: 10px; border-top: 1px solid #eee; padding-top: 8px;}
+        
+        /* Modal */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 34, 64, 0.7); justify-content: center; align-items: center; z-index: 1000; padding: 15px;
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background: #fff; padding: 25px; border-radius: 10px; width: 100%; max-width: 380px; position: relative;
+            border-top: 5px solid var(--uagrm-azul); box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .cerrar { position: absolute; top: 12px; right: 15px; font-size: 26px; cursor: pointer; color: #888; line-height: 1; }
+        .cerrar:hover { color: var(--uagrm-rojo); }
+        .modal h3 { margin-top: 0; font-size: 1.2em; color: var(--uagrm-azul); margin-bottom: 10px; padding-right: 20px;}
+        .modal p { font-size: 0.95em; margin: 8px 0; }
+        
+        .input-group { margin: 20px 0; }
+        .input-group label { display: block; font-size: 0.95em; font-weight: bold; margin-bottom: 8px; color: var(--texto-oscuro); }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1.1em; }
+        .input-group input:focus { outline: none; border-color: var(--uagrm-azul); }
+        
+        .botones { display: flex; gap: 12px; margin-top: 25px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: opacity 0.2s;}
+        .btn:hover { opacity: 0.9; }
+        .btn-guardar { background: var(--uagrm-azul); }
+        .btn-limpiar { background: var(--uagrm-rojo); }
+
+        @media (max-width: 600px) {
+            .materias-grid { grid-template-columns: 1fr; }
+            .login-card { padding: 30px 20px; }
+            .app-header h1 { font-size: 1.4rem; }
+            .stats-container { gap: 10px; }
+            .stat-box { min-width: 45%; padding: 10px; }
+            .stat-value { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-section">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>Universidad Autónoma Gabriel René Moreno</h2>
+                <h3>Facultad de Ciencias Jurídicas, Políticas, Sociales y RR.II.</h3>
+                <h4>Carrera de Derecho</h4>
+            </div>
+            <form id="loginForm" onsubmit="iniciarSesion(event)">
+                <div class="form-group">
+                    <label for="usuario">Usuario / Registro</label>
+                    <input type="text" id="usuario" placeholder="Ingrese su número de registro" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" placeholder="Ingrese su contraseña" required>
+                </div>
+                <button type="submit" class="btn-login">Ingresar al Sistema</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE LA MALLA CURRICULAR -->
+    <div id="app-section">
+        <div class="app-header">
+            <h1>Plan de Estudios - Derecho (157-1)</h1>
+            <p id="bienvenida-usuario">Gestión de Excelencia Académica</p>
+        </div>
+
+        <!-- PANEL DE ESTADÍSTICAS PPA -->
+        <div class="stats-container" id="estadisticas-ppa">
+            <div class="stat-box">
+                <h4>PPA</h4>
+                <div class="stat-value" id="val-ppa">0.00</div>
+                <div class="stat-desc">Incluye notas cero<br>(Global)</div>
+            </div>
+            <div class="stat-box">
+                <h4>PPAC</h4>
+                <div class="stat-value" id="val-ppac">0.00</div>
+                <div class="stat-desc">Incluye notas cero<br>(Esta carrera)</div>
+            </div>
+            <div class="stat-box">
+                <h4>PPASC</h4>
+                <div class="stat-value" id="val-ppasc">0.00</div>
+                <div class="stat-desc">Excluye notas cero<br>(Sin ceros)</div>
+            </div>
+        </div>
+
+        <div class="leyenda">
+            <div class="item-leyenda"><div class="caja-color" style="background: var(--aprobada); border-color: var(--borde-aprobada);"></div> Aprobada (51+)</div>
+            <div class="item-leyenda"><div class="caja-color" style="background: var(--disponible); border-color: var(--borde-disponible);"></div> Disponible / Cursando</div>
+            <div class="item-leyenda"><div class="caja-color" style="background: var(--bloqueada); border-color: var(--borde-bloqueada);"></div> Bloqueada (Faltan pre-req.)</div>
+        </div>
+
+        <div class="malla-container" id="contenedor-malla"></div>
+    </div>
+
+    <!-- MODAL DE MATERIAS -->
+    <div id="modalMateria" class="modal">
+        <div class="modal-content">
+            <span class="cerrar" onclick="cerrarModal()">&times;</span>
+            <h3 id="modalCodigoNombre"></h3>
+            <p id="modalDetalles"></p>
+            <p id="modalPreReqs" style="color: var(--uagrm-rojo); font-weight: bold; font-size: 0.9em; margin-top: 10px;"></p>
+            
+            <div class="input-group" id="grupoNota">
+                <label for="inputNota">Calificación Final (0 - 100):</label>
+                <input type="number" id="inputNota" min="0" max="100" placeholder="Ej: 85 o 0">
+            </div>
+
+            <div class="botones" id="grupoBotones">
+                <button class="btn btn-guardar" onclick="guardarNota()">Guardar Nota</button>
+                <button class="btn btn-limpiar" onclick="borrarNota()">Borrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function iniciarSesion(e) {
+            e.preventDefault();
+            const usuario = document.getElementById('usuario').value;
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('app-section').style.display = 'block';
+            document.getElementById('bienvenida-usuario').innerText = `Estudiante: ${usuario} | Gestión Académica`;
+            renderizarMalla();
+        }
+
+        const planEstudios = [
+            // PRIMER AÑO
+            { cod: 'DER100', nom: 'INTRODUCCIÓN AL DERECHO', cr: 8, ht: 3, hp: 2, pre: [], anio: 1 },
+            { cod: 'DER101', nom: 'DERECHO ROMANO E HIST. DEL DER. BOL.', cr: 8, ht: 3, hp: 2, pre: [], anio: 1 },
+            { cod: 'DER102', nom: 'SOCIOLOGÍA GENERAL Y JURÍDICA', cr: 6, ht: 2, hp: 2, pre: [], anio: 1 },
+            { cod: 'DER103', nom: 'CIENCIA POLÍTICA E HIST. DEL PENS. POLÍ.', cr: 6, ht: 2, hp: 2, pre: [], anio: 1 },
+            { cod: 'DER104', nom: 'DERECHO CIVIL I Y II (PERS. Y DER. REA.)', cr: 6, ht: 2, hp: 2, pre: [], anio: 1 },
+            { cod: 'DER105', nom: 'ECONOMÍA POLÍTICA', cr: 6, ht: 2, hp: 2, pre: [], anio: 1 },
+            { cod: 'DER106', nom: 'FILOSOFÍA GENERAL Y DEL DERECHO', cr: 6, ht: 2, hp: 2, pre: [], anio: 1 },
+            { cod: 'DER107', nom: 'METOD. DE LA INVESTI. SOCIAL Y JURÍDICA', cr: 8, ht: 3, hp: 2, pre: [], anio: 1 },
+            
+            // SEGUNDO AÑO
+            { cod: 'DER200', nom: 'DER. CONSTITUCIONAL. Y PROC. CONST.', cr: 6, ht: 2, hp: 2, pre: ['DER100', 'DER103'], anio: 2 },
+            { cod: 'DER201', nom: 'DER. HUMANOS, SU PROC. Y DER. INDÍGENA.', cr: 6, ht: 2, hp: 2, pre: ['DER101', 'DER102'], anio: 2 },
+            { cod: 'DER202', nom: 'DERECHO ADMINISTRATIVO Y SU PROCED.', cr: 6, ht: 2, hp: 2, pre: ['DER103'], anio: 2 },
+            { cod: 'DER203', nom: 'DERECHO CIVIL III (OBLIGACIONES).', cr: 6, ht: 2, hp: 2, pre: ['DER104'], anio: 2 },
+            { cod: 'DER204', nom: 'MEDICINA LEGAL.', cr: 6, ht: 2, hp: 2, pre: ['DER104'], anio: 2 },
+            { cod: 'DER205', nom: 'DERECHO PENAL I.', cr: 6, ht: 2, hp: 2, pre: ['DER106'], anio: 2 },
+            { cod: 'DER206', nom: 'CRIMINOLOGÍA.', cr: 6, ht: 2, hp: 2, pre: ['DER102'], anio: 2 },
+            { cod: 'DER207', nom: 'LEY DEL ORG. JUDICIAL, ÉTICA, TALLER DE EXPRESIÓN...', cr: 6, ht: 2, hp: 2, pre: ['DER106'], anio: 2 },
+
+            // TERCER AÑO
+            { cod: 'DER300', nom: 'DER. LABORAL, SU PROC. Y PRACT. FOREN.', cr: 6, ht: 2, hp: 2, pre: ['DER201'], anio: 3 },
+            { cod: 'DER301', nom: 'DER. FINAN., TRIBUTARIO, ADUANERO Y SU PROC.', cr: 6, ht: 2, hp: 2, pre: ['DER105'], anio: 3 },
+            { cod: 'DER302', nom: 'DER. DEL MEDIO AMBIENTE Y SU PROC.', cr: 6, ht: 2, hp: 2, pre: ['DER200'], anio: 3 },
+            { cod: 'DER303', nom: 'DERECHO CIVIL IV (CONTRATOS).', cr: 8, ht: 3, hp: 2, pre: ['DER203'], anio: 3 },
+            { cod: 'DER304', nom: 'DER. PROCESAL CIVIL Y PRAC. FORENSE.', cr: 10, ht: 4, hp: 2, pre: ['DER203'], anio: 3 },
+            { cod: 'DER305', nom: 'DERECHO PENAL II.', cr: 6, ht: 2, hp: 2, pre: ['DER204', 'DER205', 'DER206'], anio: 3 },
+            { cod: 'DER306', nom: 'DER. PROCESAL PENAL Y PRAC. FORENSE.', cr: 10, ht: 4, hp: 2, pre: ['DER205', 'DER206'], anio: 3 },
+
+            // CUARTO AÑO
+            { cod: 'DER400', nom: 'DER. A LA SEGURIDAD SOCIAL, PROC. Y PRACT. FOREN.', cr: 6, ht: 2, hp: 2, pre: ['DER300'], anio: 4 },
+            { cod: 'DER401', nom: 'DERECHO COMERCIAL Y EMPRESARIAL..', cr: 8, ht: 3, hp: 2, pre: ['DER301'], anio: 4 },
+            { cod: 'DER402', nom: 'DER. AGRARIO Y PROCEDIMIENTO ADM. AGRARIO.', cr: 6, ht: 2, hp: 2, pre: ['DER302'], anio: 4 },
+            { cod: 'DER403', nom: 'DERECHO CIVIL V (SUCESIONES).', cr: 8, ht: 3, hp: 2, pre: ['DER303'], anio: 4 },
+            { cod: 'DER404', nom: 'DERECHO BANCARIO, BURSÁTIL Y COOPERATIVO.', cr: 6, ht: 2, hp: 2, pre: ['DER202'], anio: 4 },
+            { cod: 'DER405', nom: 'DERECHO INFORMÁTICO.', cr: 6, ht: 2, hp: 2, pre: ['DER303'], anio: 4 },
+            { cod: 'DER406', nom: 'DERECHO INTERNACIONAL PÚBLICO Y PRIVADO', cr: 8, ht: 3, hp: 2, pre: ['DER305'], anio: 4 },
+            { cod: 'DER407', nom: 'METODOLOGÍA Y TALLER DE TESIS', cr: 8, ht: 3, hp: 2, pre: ['DER107'], anio: 4 },
+
+            // QUINTO AÑO
+            { cod: 'DER500', nom: 'DERECHO AUTONÓMICO Y MUNICIPAL.', cr: 6, ht: 2, hp: 2, pre: ['DER202'], anio: 5 },
+            { cod: 'DER501', nom: 'DERECHO PROCESAL AGRARIO Y SU PROCESO ORAL.', cr: 6, ht: 2, hp: 2, pre: ['DER402'], anio: 5 },
+            { cod: 'DER502', nom: 'DERECHO MINERO Y PETROLERO.', cr: 8, ht: 3, hp: 2, pre: ['DER302'], anio: 5 },
+            { cod: 'DER503', nom: 'DER. DE FAMILIA, DE LA NIÑEZ, ADOLES. Y VIOLEN. DOM.', cr: 8, ht: 3, hp: 2, pre: ['DER403'], anio: 5 },
+            { cod: 'DER504', nom: 'TALLER Y PRÁCTICA FORENSE CIVIL.', cr: 6, ht: 2, hp: 2, pre: ['DER303'], anio: 5 },
+            { cod: 'DER505', nom: 'TALLER Y PRÁC. FOREN. PENAL Y SIST. PENITENCIARIO.', cr: 8, ht: 2, hp: 2, pre: ['DER304', 'DER305', 'DER406'], anio: 5 },
+            { cod: 'DER506', nom: 'MÉTOD. ALTERNATIVOS DE RESOLU. DE CONFLICTOS.', cr: 6, ht: 2, hp: 2, pre: ['DER407'], anio: 5 }
+        ];
+
+        let notasGuardadas = JSON.parse(localStorage.getItem('notasDerecho157')) || {};
+        let materiaActual = null;
+
+        function calcularPPAs() {
+            let sumProdConCero = 0;
+            let sumCredConCero = 0;
+            let sumProdSinCero = 0;
+            let sumCredSinCero = 0;
+
+            for (const cod in notasGuardadas) {
+                const nota = notasGuardadas[cod];
+                const materia = planEstudios.find(m => m.cod === cod);
+                
+                if (materia) {
+                    const creditos = materia.cr;
+                    
+                    // PPA y PPAC: Incluyen TODAS las materias cursadas (incluso aplazos/ceros)
+                    sumProdConCero += (nota * creditos);
+                    sumCredConCero += creditos;
+
+                    // PPASC: Excluye notas cero
+                    if (nota > 0) {
+                        sumProdSinCero += (nota * creditos);
+                        sumCredSinCero += creditos;
+                    }
+                }
+            }
+
+            // En este sistema solo hay datos de 1 carrera, por ende PPA = PPAC
+            const ppa = sumCredConCero > 0 ? (sumProdConCero / sumCredConCero).toFixed(2) : "0.00";
+            const ppac = ppa; 
+            const ppasc = sumCredSinCero > 0 ? (sumProdSinCero / sumCredSinCero).toFixed(2) : "0.00";
+
+            document.getElementById('val-ppa').innerText = ppa;
+            document.getElementById('val-ppac').innerText = ppac;
+            document.getElementById('val-ppasc').innerText = ppasc;
+        }
+
+        function verificarEstado(mat) {
+            let nota = notasGuardadas[mat.cod];
+            let aprobada = nota !== undefined && nota >= 51;
+            
+            // Los pre-requisitos deben estar APROBADOS (>=51)
+            let preReqAprobados = mat.pre.every(reqCod => notasGuardadas[reqCod] !== undefined && notasGuardadas[reqCod] >= 51);
+            
+            if (aprobada) return 'aprobada';
+            // Si la nota está registrada pero es menor a 51, o si cumple prerequisitos
+            if ((nota !== undefined && nota < 51) || preReqAprobados) return 'disponible';
+            return 'bloqueada';
+        }
+
+        function renderizarMalla() {
+            const contenedor = document.getElementById('contenedor-malla');
+            contenedor.innerHTML = '';
+            
+            for (let i = 1; i <= 5; i++) {
+                let materiasAnio = planEstudios.filter(m => m.anio === i);
+                let anioDiv = document.createElement('div');
+                anioDiv.className = 'anio';
+                anioDiv.innerHTML = `<h2>Año ${i}</h2>`;
+                
+                let gridDiv = document.createElement('div');
+                gridDiv.className = 'materias-grid';
+
+                materiasAnio.forEach(mat => {
+                    let estado = verificarEstado(mat);
+                    let nota = notasGuardadas[mat.cod];
+                    
+                    let badgeClass = nota !== undefined && nota < 51 ? 'nota-badge reprobada' : 'nota-badge';
+                    
+                    let matDiv = document.createElement('div');
+                    matDiv.className = `materia ${estado}`;
+                    matDiv.onclick = () => abrirModal(mat, estado);
+                    
+                    matDiv.innerHTML = `
+                        <div class="header-mat">
+                            <span class="codigo">${mat.cod}</span>
+                            ${nota !== undefined ? `<span class="${badgeClass}">${nota}</span>` : ''}
+                        </div>
+                        <div class="nombre">${mat.nom}</div>
+                        <div class="detalles-mat">
+                            <span><strong>CR:</strong> ${mat.cr}</span>
+                            <span><strong>HT:</strong> ${mat.ht}</span>
+                            <span><strong>HP:</strong> ${mat.hp}</span>
+                        </div>
+                    `;
+                    gridDiv.appendChild(matDiv);
+                });
+
+                anioDiv.appendChild(gridDiv);
+                contenedor.appendChild(anioDiv);
+            }
+            calcularPPAs();
+        }
+
+        const modal = document.getElementById('modalMateria');
+
+        function abrirModal(mat, estado) {
+            materiaActual = mat;
+            document.getElementById('modalCodigoNombre').innerText = `${mat.cod} - ${mat.nom}`;
+            document.getElementById('modalDetalles').innerText = `Créditos: ${mat.cr} | Horas Teóricas: ${mat.ht} | Horas Prácticas: ${mat.hp}`;
+            
+            let reqsText = mat.pre.length > 0 ? `Pre-requisitos: ${mat.pre.join(', ')}` : 'Sin pre-requisitos';
+            document.getElementById('modalPreReqs').innerText = reqsText;
+
+            if (estado === 'bloqueada') {
+                document.getElementById('grupoNota').style.display = 'none';
+                document.getElementById('grupoBotones').style.display = 'none';
+                document.getElementById('modalPreReqs').innerText += ' (BLOQUEADA - Debe aprobar los requisitos)';
+            } else {
+                document.getElementById('grupoNota').style.display = 'block';
+                document.getElementById('grupoBotones').style.display = 'flex';
+                document.getElementById('inputNota').value = notasGuardadas[mat.cod] !== undefined ? notasGuardadas[mat.cod] : '';
+                setTimeout(() => document.getElementById('inputNota').focus(), 100);
+            }
+            modal.style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            modal.style.display = 'none';
+            materiaActual = null;
+        }
+
+        function guardarNota() {
+            let nota = parseInt(document.getElementById('inputNota').value);
+            if (isNaN(nota) || nota < 0 || nota > 100) {
+                alert('Ingresa una nota válida entre 0 y 100.');
+                return;
+            }
+            notasGuardadas[materiaActual.cod] = nota;
+            localStorage.setItem('notasDerecho157', JSON.stringify(notasGuardadas));
+            cerrarModal();
+            renderizarMalla();
+        }
+
+        function borrarNota() {
+            if (notasGuardadas[materiaActual.cod] !== undefined) {
+                delete notasGuardadas[materiaActual.cod];
+                localStorage.setItem('notasDerecho157', JSON.stringify(notasGuardadas));
+            }
+            cerrarModal();
+            renderizarMalla();
+        }
+
+        window.onclick = function(event) { if (event.target == modal) cerrarModal(); }
+        document.getElementById('inputNota').addEventListener('keypress', function(e) { if (e.key === 'Enter') guardarNota(); });
+    </script>
+</body>
+</html>
